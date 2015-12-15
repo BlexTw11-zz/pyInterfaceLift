@@ -7,7 +7,7 @@ Just run it with the python interpreter:
 
     python pyInterfacelift.py 1920x1080 /path/to/your/directory
 
-Testet with Python 2.7.6.
+Tested with Python 2.7.6.
 
 ### Options
 
