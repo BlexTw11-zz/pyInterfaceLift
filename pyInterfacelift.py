@@ -1,13 +1,14 @@
 import re
 import requests
 import argparse
+import os
 
 __author__ = 'BlexTw11'
 __version__ = '1.0'
-url_start = "https://interfacelift.com/"
-url_start_wp = "https://interfacelift.com/wallpaper/"
-url = 'https://interfacelift.com/wallpaper/downloads/date/index1.html'
-url_download_fix = "7yz4ma1/"
+url_ifl = "https://interfacelift.com/"
+url_sort = 'wallpaper/downloads/%s/any'
+url_download_file = "wallpaper/7yz4ma1/"
+sort_by = "date"
 
 def id_parser(r):
     return re.findall(r'id="list_([\d]+)"', r.content)
@@ -17,7 +18,7 @@ def name_parser(r, id):
 
 def next_page(r):
     link = re.search(r'href=\"(?P<link>.+\.html)\".+\>next page ', r.content).group('link')
-    return requests.get(url_start + link)
+    return requests.get(url_ifl + link)
 
 def last_page(r):
     link = re.search(r'selector_disabled\".+\>next page ', r.content)
@@ -31,7 +32,7 @@ def find_resolution(r, id, resolution):
 def load_files(r, id, name, resolution, path):
 
     file_name = "%05d_%s_%s.jpg" % (int(id), name, resolution)
-    url = url_start_wp + url_download_fix + file_name
+    url = url_ifl + url_download_file + file_name
 
     r_file = requests.get(url)
     # Schreibe die Daten in Dateien
@@ -44,9 +45,10 @@ def load_files(r, id, name, resolution, path):
 def main():
     parser = argparse.ArgumentParser(description='pyInterfaceLift v' + __version__ + ' by ' + __author__)
     parser.add_argument('resolution', help='Defines the resolution. E.g. 1920x1080')
-    parser.add_argument('path', help='Defines the path where the wallpapers will be stored.')
+    parser.add_argument('path', nargs='?', default=os.getcwd(), help='Defines the path where the wallpapers will be stored.')
     args = parser.parse_args()
 
+    url = url_ifl + url_sort % sort_by
     r = requests.get(url)
 
     resolution = args.resolution
