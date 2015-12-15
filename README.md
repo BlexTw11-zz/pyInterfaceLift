@@ -3,7 +3,7 @@ Downloader for InterfaceLift pictures
 
 ### Running
 
-Just run it with the python interpreter:
+Just run it with the python interpreter. Without the directory parameter, the wallpaper will be stored in your current folder.
 
     python pyInterfacelift.py 1920x1080 /path/to/your/directory
 
