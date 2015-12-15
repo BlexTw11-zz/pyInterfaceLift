@@ -1,4 +1,4 @@
-# pyInterfaceLift
+# pyInterfaceLift - A InterfaceLIFT Downloader
 Downloader for InterfaceLift pictures
 
 ### Running
