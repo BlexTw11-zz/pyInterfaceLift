@@ -46,9 +46,13 @@ def load_files(r, id, name, resolution, path):
 def main():
     parser = argparse.ArgumentParser(description='pyInterfaceLift v' + __version__ + ' by ' + __author__)
     parser.add_argument('resolution', help='Defines the resolution. E.g. 1920x1080')
-    parser.add_argument('path', nargs='?', default=os.getcwd(), help='Defines the path where the wallpapers will be stored.')
-    parser.add_argument('-s', default='date', help='SORT_BY must be "date", "downloads", "comments", "rating" or "random". Sort the wallpapers on the Interfacelift page. Standard is "date".', dest='sort_by')
-    parser.add_argument('-n', default=0, type=int, help='Defines the maximal downloaded wallpapers. Standard is all.', dest='max_download')
+    parser.add_argument('path', nargs='?', default=os.getcwd(),
+                        help='Defines the path where the wallpapers will be stored.')
+    parser.add_argument('-s', default='date',
+                        help='SORT_BY must be "date", "downloads", "comments", "rating" or "random". '
+                             'Sort the wallpapers on the Interfacelift page. Standard is "date".', dest='sort_by')
+    parser.add_argument('-n', default=0, type=int, help='Defines the maximal downloaded wallpapers. '
+                                                        'Standard is download all.', dest='max_download')
     args = parser.parse_args()
 
     resolution = args.resolution
@@ -57,13 +61,12 @@ def main():
     if args.sort_by in set_sorted:
         sorted_by = args.sort_by
     else:
-        print '\033[91m\n\tError: Wrong sorting command.\033[0m\n\tTry one of these: "date", "downloads", "comments", "rating" or "random".\n'
+        print '\033[91m\n\tError: Wrong sorting command.' \
+              '\033[0m\n\tTry one of these: "date", "downloads", "comments", "rating" or "random".\n'
         parser.print_help()
         sys.exit()
 
     url = url_ifl + url_sort % sorted_by
-
-    #print url
 
     r = requests.get(url)
 
