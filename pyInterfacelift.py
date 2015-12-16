@@ -48,7 +48,7 @@ def main():
     parser.add_argument('resolution', help='Defines the resolution. E.g. 1920x1080')
     parser.add_argument('path', nargs='?', default=os.getcwd(), help='Defines the path where the wallpapers will be stored.')
     parser.add_argument('-s', default='date', help='SORT_BY must be "date", "downloads", "comments", "rating" or "random". Sort the wallpapers on the Interfacelift page. Standard is "date".', dest='sort_by')
-    parser.add_argument('-n', default=0, type=int, help='Defines the maximal downloaded wallpapers. Standard is all.', dest='max_download')
+    parser.add_argument('-n', default=0, type=int, help='Defines the maximum downloaded wallpapers. Standard is all.', dest='max_download')
     args = parser.parse_args()
 
     resolution = args.resolution
