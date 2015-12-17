@@ -1,5 +1,5 @@
 # pyInterfaceLift - A InterfaceLIFT Downloader
-Downloader for InterfaceLift pictures
+Downloader for InterfaceLift wallpapers
 
 ### Running
 
@@ -24,3 +24,7 @@ For example:
 * -n PARAM - Defines the maximum of downloaded wallpaper. Standard is download all.
 
 Tested with Python 2.7.6.
+
+### Licence
+
+This software is licensed under the [MIT license](http://opensource.org/licenses/mit-license.php).
