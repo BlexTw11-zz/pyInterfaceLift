@@ -73,17 +73,13 @@ def arg_parser():
                         help='Sort the wallpapers on the Interfacelift page. Standard is "date".', dest='sort_by')
     parser.add_argument('-n', default=0, type=int, help='Defines the maximal downloaded wallpapers. '
                                                         'Standard is download all.', dest='max_download')
-
     return parser
 
 def loop():
     try:
         parser = arg_parser()
-
         args = parser.parse_args()
-
         check_resolution(args.resolution, parser)
-
         r = requests.get(url_ifl + url_sort % args.sort_by)
 
         page_counter = 1
@@ -108,7 +104,6 @@ def loop():
         sys.exit()
     except KeyboardInterrupt:
         print "Exit..."
-
         sys.exit()
 
 if __name__ == '__main__':
