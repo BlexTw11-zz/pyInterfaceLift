@@ -8,7 +8,7 @@ import textwrap
 from resolutions import *
 
 __author__ = 'BlexTw11'
-__version__ = '1.1'
+__version__ = '1.2'
 url_ifl = "https://interfacelift.com/"
 url_sort = 'wallpaper/downloads/%s/any'
 url_download_file = "wallpaper/7yz4ma1/"
