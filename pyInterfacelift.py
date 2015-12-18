@@ -3,6 +3,9 @@ import requests
 import argparse
 import os
 import sys
+import textwrap
+
+from resolutions import *
 
 __author__ = 'BlexTw11'
 __version__ = '1.1'
@@ -42,8 +45,26 @@ def load_files(r, id, name, resolution, path):
     if r_file.status_code != requests.codes.ok:
         raise ValueError('Download picture failed')
 
+def print_resolutions():
+    string = 'Available resolutions are:\n'
+    alt = 0
+    for key,val in sorted(ifl_resolutions.items()):
+        string += '\t{0:{fill}{align}35}'.format(key, fill=' ' if alt else '.', align='<') + "%s\n" % val
+        alt ^= 1
+
+    return string
+
+def check_resolution(res, parser):
+    if not res in ifl_resolutions.values():
+        parser.print_help()
+        print "\nError: Wrong resolution"
+        sys.exit()
+
 def arg_parser():
-    parser = argparse.ArgumentParser(description='pyInterfaceLift v' + __version__ + ' by ' + __author__)
+    resolutions = print_resolutions()
+    parser = argparse.ArgumentParser(description='pyInterfaceLift v' + __version__ + ' by ' + __author__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     epilog=textwrap.dedent(resolutions))
     parser.add_argument('resolution', help='Defines the resolution. E.g. 1920x1080')
     parser.add_argument('path', nargs='?', default=os.getcwd(),
                         help='Defines the path where the wallpapers will be stored.')
@@ -51,11 +72,15 @@ def arg_parser():
                         help='Sort the wallpapers on the Interfacelift page. Standard is "date".', dest='sort_by')
     parser.add_argument('-n', default=0, type=int, help='Defines the maximal downloaded wallpapers. '
                                                         'Standard is download all.', dest='max_download')
-    return parser.parse_args()
+    return parser
 
 def loop():
     try:
-        args = arg_parser()
+        parser = arg_parser()
+
+        args = parser.parse_args()
+
+        check_resolution(args.resolution, parser)
 
         r = requests.get(url_ifl + url_sort % args.sort_by)
 
