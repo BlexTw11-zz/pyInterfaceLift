@@ -3,13 +3,15 @@ import requests
 import argparse
 import os
 import sys
+import textwrap
+
+from resolutions import *
 
 __author__ = 'BlexTw11'
-__version__ = '1.1'
+__version__ = '1.2'
 url_ifl = "https://interfacelift.com/"
 url_sort = 'wallpaper/downloads/%s/any'
 url_download_file = "wallpaper/7yz4ma1/"
-set_sorted = ["date", "downloads", "comments", "rating", "random"]
 
 def id_parser(r):
     return re.findall(r'id="list_([\d]+)"', r.content)
@@ -43,57 +45,72 @@ def load_files(r, id, name, resolution, path):
     if r_file.status_code != requests.codes.ok:
         raise ValueError('Download picture failed')
 
-def main():
-    parser = argparse.ArgumentParser(description='pyInterfaceLift v' + __version__ + ' by ' + __author__)
+def print_resolutions():
+    string = 'Available resolutions are:\n'
+    alt = 0
+    for key,val in sorted(ifl_resolutions.items()):
+        string += '\t{0:{fill}{align}35}'.format(key, fill=' ' if alt else '.', align='<') + "%s\n" % val
+        alt ^= 1
+
+    return string
+
+def check_resolution(res, parser):
+    if not res in ifl_resolutions.values():
+        parser.print_help()
+        print "\nError: Wrong resolution"
+        sys.exit()
+
+def arg_parser():
+    resolutions = print_resolutions()
+    parser = argparse.ArgumentParser(description='pyInterfaceLift v' + __version__ + ' by ' + __author__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     epilog=textwrap.dedent(resolutions))
     parser.add_argument('resolution', help='Defines the resolution. E.g. 1920x1080')
 
     parser.add_argument('path', nargs='?', default=os.getcwd(),
                         help='Defines the path where the wallpapers will be stored.')
-    parser.add_argument('-s', default='date',
-                        help='SORT_BY must be "date", "downloads", "comments", "rating" or "random". '
-                             'Sort the wallpapers on the Interfacelift page. Standard is "date".', dest='sort_by')
+    parser.add_argument('-s', default='date', choices=['date', 'downloads', 'comments', 'rating', 'random'],
+                        help='Sort the wallpapers on the Interfacelift page. Standard is "date".', dest='sort_by')
     parser.add_argument('-n', default=0, type=int, help='Defines the maximal downloaded wallpapers. '
                                                         'Standard is download all.', dest='max_download')
 
-    args = parser.parse_args()
+    return parser
 
-    resolution = args.resolution
-    path = args.path
-    max_wp = args.max_download
-    if args.sort_by in set_sorted:
-        sorted_by = args.sort_by
-    else:
-        print '\033[91m\n\tError: Wrong sorting command.' \
-              '\033[0m\n\tTry one of these: "date", "downloads", "comments", "rating" or "random".\n'
-        parser.print_help()
+def loop():
+    try:
+        parser = arg_parser()
+
+        args = parser.parse_args()
+
+        check_resolution(args.resolution, parser)
+
+        r = requests.get(url_ifl + url_sort % args.sort_by)
+
+        page_counter = 1
+        wp_counter = 0
+
+        while not last_page(r):
+            ids = id_parser(r)
+            print "*** Page [%d] ***\n" % page_counter
+            page_counter += 1
+            for id in ids:
+                if find_resolution(r, id, args.resolution):
+                    wp_counter += 1
+                    print "Wallpaper [%d]" % wp_counter
+                    print "Image ID:", id
+                    name = name_parser(r, id)
+                    print "Image Name:", name
+                    load_files(r, id, name, args.resolution, args.path)
+                if args.max_download > 0 and wp_counter == args.max_download:
+                    print "All wallpapers downloaded. Bye!"
+                    sys.exit()
+            r = next_page(r)
+        sys.exit()
+    except KeyboardInterrupt:
+        print "Exit..."
+
         sys.exit()
 
-    url = url_ifl + url_sort % sorted_by
-
-    r = requests.get(url)
-
-    page_counter = 1
-    wp_counter = 0
-
-    while not last_page(r):
-        ids = id_parser(r)
-        print "*** Page [%d] ***\n" % page_counter
-        page_counter += 1
-        for id in ids:
-            if find_resolution(r, id, resolution):
-                wp_counter += 1
-                print "Wallpaper [%d]" % wp_counter
-                print "Image ID:", id
-                name = name_parser(r, id)
-                print "Image Name:", name
-                load_files(r, id, name, resolution, path)
-                print
-            if max_wp > 0 and wp_counter == max_wp:
-                print "All wallpapers downloaded. Bye!"
-                sys.exit()
-        r = next_page(r)
-    sys.exit()
-
-
 if __name__ == '__main__':
-    main()
+    loop()
+
