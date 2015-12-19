@@ -45,11 +45,22 @@ def load_files(wp_id, name, resolution, path):
 
     url = url_ifl + url_download_file + file_name
 
-    r_file = requests.get(url)
-    with open(path + "/" + file_name, "wb") as pic:
-        pic.write(r_file.content)
+    with open(path + "/" + file_name, "wb") as wp:
+        response = requests.get(url, stream=True)
+        total_length = response.headers.get('content-length')
 
-    if r_file.status_code != requests.codes.ok:
+        if not total_length:
+            wp.write(response.content)
+        else:
+            dl = 0
+            total_length = int(total_length)
+            for data in response.iter_content():
+                dl += len(data)
+                wp.write(data)
+                sys.stdout.write("\r[%-50s] %d%%" % ('=' * int(50 * dl / total_length), 100 * dl / total_length))
+                sys.stdout.flush()
+    print
+    if response.status_code != requests.codes.ok:
         raise Exception('Download picture failed')
 
 
@@ -158,8 +169,8 @@ def loop():
                     print "Image ID:", wp_id
                     name = name_parser(r, wp_id)
                     print "Image Name:", name
-                    print
                     load_files(wp_id, name, args.resolution, args.path)
+                    print
                 if 0 < args.max_download == wp_counter:
                     print "All wallpapers downloaded. Bye!"
                     sys.exit()
