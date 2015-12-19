@@ -119,7 +119,7 @@ def arg_parser():
     parser.add_argument('-s', '--sort', default='date', choices=['date', 'downloads', 'comments', 'rating', 'random'],
                         help='Sort the wallpapers on the Interfacelift page. Standard is "date".', dest='sort_by')
     parser.add_argument('-n', '--max', default=0, type=int, help='Defines the maximal downloaded wallpapers. '
-                        'Standard is download all.', dest='max_download')
+                        'Standard is download all.', dest='max_wallpaper')
     parser.add_argument('-c', '--cron', action='store_true', dest='cron',
                         help='Cron job mode. Saves the ID of the latest loaded '
                              'wallpaper and continues on the next job with just new wallpapers.')
@@ -159,7 +159,7 @@ def loop():
                 new_wp_id = ids[0]
             for wp_id in ids:
                 if args.cron and (not latest_wp_id or wp_id == latest_wp_id) \
-                        and (0 < args.max_download == wp_counter or args.max_download == 0):
+                        and (0 < args.max_wallpaper == wp_counter or args.max_wallpaper == 0):
                     print "All new wallpapers downloaded. See u next time!"
                     write_latest_wp_id(new_wp_id)
                     sys.exit()
@@ -171,7 +171,7 @@ def loop():
                     print "Image Name:", name
                     load_files(wp_id, name, args.resolution, args.path)
                     print
-                if 0 < args.max_download == wp_counter:
+                if 0 < args.max_wallpaper == wp_counter:
                     print "All wallpapers downloaded. Bye!"
                     sys.exit()
             r = next_page(r)
