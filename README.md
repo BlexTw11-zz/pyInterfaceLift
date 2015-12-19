@@ -1,7 +1,7 @@
 # pyInterfaceLift - A InterfaceLIFT Downloader
 Downloader for InterfaceLift wallpapers
 
-### Running
+### Usage
 
 Just run it with the python interpreter. Without the directory parameter, the wallpaper will be stored in your current folder.
 
