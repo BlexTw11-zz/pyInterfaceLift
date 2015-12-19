@@ -5,7 +5,10 @@ Downloader for InterfaceLift wallpapers
 
 Just run it with the python interpreter. Without the directory parameter, the wallpaper will be stored in your current folder.
 
-    python pyInterfacelift.py [-s SORTING-PARAM] [-n MAX-WALLPAPER] resolution [/path/to/your/directory]
+    pyhton pyInterfacelift.py [-h] [-s {date,downloads,comments,rating,random}]
+                          [-n MAX-WALLPAPER] [-c]
+                          resolution [/path/to/your/directory]
+
 
 For example:
     
@@ -22,6 +25,8 @@ For example:
 * Path to your directory. Standard is the current directory.
 * -s PARAM - Sorts the wallpaper by "date", "rating", "downloads", "comments" or "random". Standard is "date".
 * -n PARAM - Defines the maximum of downloaded wallpaper. Standard is download all.
+* -c       - Cron job mode. Downloads on every call just new wallpaper. If you using this option for the first time,
+             call pyInterfaceLift with `-n N>0`.
 
 Tested with Python 2.7.6.
 
