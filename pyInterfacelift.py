@@ -5,13 +5,14 @@ import os
 import sys
 import textwrap
 
-from resolutions import *
-
 __author__ = 'BlexTw11'
 __version__ = '1.2'
-url_ifl = "https://interfacelift.com/"
+url_ifl = 'https://interfacelift.com/'
 url_sort = 'wallpaper/downloads/%s/any'
-url_download_file = "wallpaper/7yz4ma1/"
+url_download_file = 'wallpaper/7yz4ma1/'
+url_resolution = 'services/bulk_download_service/'
+
+ifl_resolutions = []
 
 def id_parser(r):
     return re.findall(r'id="list_([\d]+)"', r.content)
@@ -33,12 +34,10 @@ def find_resolution(r, id, resolution):
     return True if res else False
 
 def load_files(r, id, name, resolution, path):
-
     file_name = "%05d_%s_%s.jpg" % (int(id), name, resolution)
     url = url_ifl + url_download_file + file_name
 
     r_file = requests.get(url)
-    # Schreibe die Daten in Dateien
     with open(path + "/" + file_name, "wb") as pic:
         pic.write(r_file.content)
 
@@ -48,17 +47,20 @@ def load_files(r, id, name, resolution, path):
 def print_resolutions():
     string = 'Available resolutions are:\n'
     alt = 0
-    for key,val in sorted(ifl_resolutions.items()):
+    for val, key in sorted(ifl_resolutions):
         string += '\t{0:{fill}{align}35}'.format(key, fill=' ' if alt else '.', align='<') + "%s\n" % val
         alt ^= 1
-
     return string
 
 def check_resolution(res, parser):
-    if not res in ifl_resolutions.values():
+    if not res in [item[0] for item in ifl_resolutions]:
         parser.print_help()
         print "\nError: Wrong resolution"
         sys.exit()
+
+def parse_resolution(r):
+    global ifl_resolutions
+    ifl_resolutions = list(set(re.findall(r'"(\d+x\d+)">(.*?)<', r.content)))
 
 def arg_parser():
     resolutions = print_resolutions()
@@ -66,7 +68,6 @@ def arg_parser():
                                      formatter_class=argparse.RawDescriptionHelpFormatter,
                                      epilog=textwrap.dedent(resolutions))
     parser.add_argument('resolution', help='Defines the resolution. E.g. 1920x1080')
-
     parser.add_argument('path', nargs='?', default=os.getcwd(),
                         help='Defines the path where the wallpapers will be stored.')
     parser.add_argument('-s', default='date', choices=['date', 'downloads', 'comments', 'rating', 'random'],
@@ -77,9 +78,15 @@ def arg_parser():
 
 def loop():
     try:
+        # Parse resolutions
+        r = requests.get(url_ifl + url_resolution)
+        parse_resolution(r)
+        # Parse arguments
         parser = arg_parser()
         args = parser.parse_args()
+        # Check if resolution is available on IFL
         check_resolution(args.resolution, parser)
+        # Call IFL website
         r = requests.get(url_ifl + url_sort % args.sort_by)
 
         page_counter = 1
@@ -103,7 +110,7 @@ def loop():
             r = next_page(r)
         sys.exit()
     except KeyboardInterrupt:
-        print "Exit..."
+        print "\nExit..."
         sys.exit()
 
 if __name__ == '__main__':
