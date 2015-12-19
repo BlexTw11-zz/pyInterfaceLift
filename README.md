@@ -22,10 +22,10 @@ For example:
 
 ###### Optional arguments
 
-* Path to your directory. Standard is the current directory.
-* -s PARAM - Sorts the wallpaper by "date", "rating", "downloads", "comments" or "random". Standard is "date".
-* -n PARAM - Defines the maximum of downloaded wallpaper. Standard is download all.
-* -c       - Cron job mode. Downloads on every call just new wallpaper. If you using this option for the first time,
+* `[Path]` To your directory. Standard is the current directory.
+* `[-s PARAM]` Sorts the wallpaper by "date", "rating", "downloads", "comments" or "random". Standard is "date".
+* `[-n PARAM]` Defines the maximum of downloaded wallpaper. Standard is download all.
+* `[-c]` Cron job mode. Downloads on every call just new wallpaper. If you using this option for the first time,
              call pyInterfaceLift with `-n N>0`.
 
 Tested with Python 2.7.6.
