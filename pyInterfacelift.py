@@ -6,7 +6,7 @@ import sys
 import textwrap
 
 __author__ = 'BlexTw11'
-__version__ = '1.3'
+__version__ = '1.3.1'
 url_ifl = "https://interfacelift.com/"
 url_sort = 'wallpaper/downloads/%s/any'
 url_download_file = 'wallpaper/7yz4ma1/'
@@ -40,7 +40,8 @@ def find_resolution(r, wp_id, resolution):
     return True if res else False
 
 
-def load_files(wp_id, name, resolution, path):
+def load_files(r, wp_id, name, resolution, path):
+    # TODO Change referer!
     file_name = "%05d_%s_%s.jpg" % (int(wp_id), name, resolution)
 
     url = url_ifl + url_download_file + file_name
@@ -54,10 +55,13 @@ def load_files(wp_id, name, resolution, path):
         else:
             dl = 0
             total_length = int(total_length)
-            for data in response.iter_content():
+
+            for data in response.iter_content(chunk_size=2048):
                 dl += len(data)
                 wp.write(data)
-                sys.stdout.write("\r[%-50s] %d%%" % ('=' * int(50 * dl / total_length), 100 * dl / total_length))
+                sys.stdout.write("\r%-50s %.2f %s   " % (u'\u2588' * (50 * dl / total_length),
+                                                         float(dl)/(1024 if dl < 1048576 else 1048576),
+                                                         'kBytes' if dl < 1048576 else 'MBytes'))
                 sys.stdout.flush()
     print
     if response.status_code != requests.codes.ok:
@@ -169,7 +173,7 @@ def loop():
                     print "Image ID:", wp_id
                     name = name_parser(r, wp_id)
                     print "Image Name:", name
-                    load_files(wp_id, name, args.resolution, args.path)
+                    load_files(r, wp_id, name, args.resolution, args.path)
                     print
                 if 0 < args.max_wallpaper == wp_counter:
                     print "All wallpapers downloaded. Bye!"
@@ -177,7 +181,7 @@ def loop():
             r = next_page(r)
         sys.exit()
     except KeyboardInterrupt:
-        print "Exit..."
+        print "\nExit..."
         sys.exit()
     except ValueError as e:
         print e.message

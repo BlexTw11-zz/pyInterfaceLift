@@ -1,6 +1,15 @@
 # pyInterfaceLift - A InterfaceLIFT Downloader
 Downloader for InterfaceLift wallpapers
 
+### Preparation
+
+To run this software you need the [Requests](http://docs.python-requests.org/en/) package.
+For installing over [pip](https://pip.pypa.io/en/stable/) enter:
+
+    pip install requests
+    
+
+
 ### Running
 
 Just run it with the python interpreter. Without the directory parameter, the wallpaper will be stored in your current folder.
