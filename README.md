@@ -1,4 +1,4 @@
-# pyInterfaceLift - A InterfaceLIFT Downloader
+# pyInterfaceLift - A [InterfaceLIFT](https://interfacelift.com/) Downloader
 Downloader for InterfaceLift wallpapers
 
 ### Preparation
