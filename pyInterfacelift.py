@@ -41,7 +41,6 @@ def find_resolution(r, wp_id, resolution):
 
 
 def load_files(r, wp_id, name, resolution, path):
-    # TODO Change referer!
     file_name = "%05d_%s_%s.jpg" % (int(wp_id), name, resolution)
 
     url = url_ifl + url_download_file + file_name
