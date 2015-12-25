@@ -6,7 +6,7 @@ import sys
 import textwrap
 
 __author__ = 'BlexTw11'
-__version__ = '1.3.1'
+__version__ = '1.3.2'
 url_ifl = "https://interfacelift.com/"
 url_sort = 'wallpaper/downloads/%s/any'
 url_download_file = 'wallpaper/7yz4ma1/'
@@ -14,6 +14,19 @@ url_resolution = 'services/bulk_download_service/'
 id_file = 'id'
 
 ifl_resolutions = []
+
+
+def get_request(url, stream=False):
+    try:
+        return requests.get(url, stream=stream)
+    except requests.exceptions.Timeout  as error:
+        print "Timeout. Perhaps the server is down?! :(\nError Message:\n\t"
+        print error[0][0], error[0][1]
+        sys.exit(-1)
+    except requests.exceptions.ConnectionError as error:
+        print "Connection Error. Something went terrible wrong... sorry.\nError Message:\n\t"
+        print error[0][0], error[0][1]
+        sys.exit(-2)
 
 
 def id_parser(r):
@@ -41,13 +54,12 @@ def find_resolution(r, wp_id, resolution):
 
 
 def load_files(r, wp_id, name, resolution, path):
-    # TODO Change referer!
     file_name = "%05d_%s_%s.jpg" % (int(wp_id), name, resolution)
 
     url = url_ifl + url_download_file + file_name
 
     with open(path + "/" + file_name, "wb") as wp:
-        response = requests.get(url, stream=True)
+        response = get_request(url, stream=True)
         total_length = response.headers.get('content-length')
 
         if not total_length:
@@ -55,13 +67,15 @@ def load_files(r, wp_id, name, resolution, path):
         else:
             dl = 0
             total_length = int(total_length)
+            length_string = '%.2f %s' % (float(total_length)/(1024 if total_length < 1048576 else 1048576),
+                                                         'kBytes' if total_length < 1048576 else 'MBytes')
 
             for data in response.iter_content(chunk_size=2048):
                 dl += len(data)
                 wp.write(data)
-                sys.stdout.write("\r%-50s %.2f %s   " % (u'\u2588' * (50 * dl / total_length),
+                sys.stdout.write("\r%-50s %.2f %s of %s   " % (u'\u2588' * (50 * dl / total_length),
                                                          float(dl)/(1024 if dl < 1048576 else 1048576),
-                                                         'kBytes' if dl < 1048576 else 'MBytes'))
+                                                         'kBytes' if dl < 1048576 else 'MBytes', length_string))
                 sys.stdout.flush()
     print
     if response.status_code != requests.codes.ok:
@@ -133,7 +147,7 @@ def arg_parser():
 def loop():
     try:
         # Parse resolutions
-        r = requests.get(url_ifl + url_resolution)
+        r = get_request(url_ifl + url_resolution)
         parse_resolution(r)
         # Parse arguments
         parser = arg_parser()
@@ -141,7 +155,7 @@ def loop():
         # Check if resolution is available on IFL
         check_resolution(args.resolution, parser)
         # Call IFL website
-        r = requests.get(url_ifl + url_sort % args.sort_by)
+        r = get_request(url_ifl + url_sort % args.sort_by)
 
         latest_wp_id = read_latest_wp_id()
 
@@ -183,7 +197,7 @@ def loop():
     except KeyboardInterrupt:
         print "\nExit..."
         sys.exit()
-    except ValueError as e:
+    except Exception as e:
         print e.message
         sys.exit(-1)
 
