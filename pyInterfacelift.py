@@ -11,7 +11,7 @@ __version__ = '1.3.3'
 # Timeout for http request
 timeout = 5  # seconds
 
-url_ifl = "https://interfacelift.com/"
+url_ifl = 'https://interfacelift.com/'
 url_sort = 'wallpaper/downloads/%s/any'
 url_download_file = 'wallpaper/7yz4ma1/'
 url_resolution = 'services/bulk_download_service/'
@@ -25,12 +25,12 @@ def get_request(url, stream=False):
     try:
         return requests.get(url, stream=stream, timeout=timeout)
     except requests.exceptions.Timeout as error:
-        print "Timeout. Perhaps the server is down?! :(\n\nError Message:"
-        print "\t", error.message
+        print 'Timeout. Perhaps the server is down?! :(\n\nError Message:'
+        print '\t', error.message
         sys.exit(-1)
     except requests.exceptions.ConnectionError as error:
-        print "Connection Error. Something went terrible wrong... sorry.\n\nError Message:"
-        print "\t", error.message
+        print 'Connection Error. Something went terrible wrong... sorry.\n\nError Message:'
+        print '\t', error.message
         sys.exit(-2)
 
 
@@ -53,24 +53,24 @@ def next_page(r):
 
 def last_page(r):
     link = re.search(r'selector_disabled".+>next page ', r.content)
-    return True if link else False
+    return link is not None
 
 
 def find_resolution(r, wp_id, resolution):
     regex = r'%s[\'\"\)\>\<\w\d\s\=:\/]*?Select Resolution[\'\"\)\>\<\w\d\s\=:\/_,\(.\-;]*?%s' % (wp_id, resolution)
     res = re.search(regex, r.content)
-    return True if res else False
+    return res is not None
 
 
 def load_files(r, wp_id, resolution, path):
     global last_file_name
     name = file_name_parser(r, wp_id)
-    file_name = "%05d_%s_%s.jpg" % (int(wp_id), name, resolution)
+    file_name = '%05d_%s_%s.jpg' % (int(wp_id), name, resolution)
     # Save temporary the current downloaded file
-    last_file_name = path + "/" + file_name
+    last_file_name = path + '/' + file_name
     url = url_ifl + url_download_file + file_name
 
-    with open(last_file_name, "wb") as wp:
+    with open(last_file_name, 'wb') as wp:
         response = get_request(url, stream=True)
         total_length = response.headers.get('content-length')
 
@@ -85,7 +85,7 @@ def load_files(r, wp_id, resolution, path):
             for data in response.iter_content(chunk_size=2048):
                 dl += len(data)
                 wp.write(data)
-                sys.stdout.write("\r%-50s %.2f %s of %s   " % (u'\u2588' * (50 * dl / total_length),
+                sys.stdout.write('\r%-50s %.2f %s of %s   ' % (u'\u2588' * (50 * dl / total_length),
                                                          float(dl)/(1024 if dl < 1048576 else 1048576),
                                                          'kBytes' if dl < 1048576 else 'MBytes', length_string))
                 sys.stdout.flush()
@@ -99,16 +99,15 @@ def print_resolutions():
     string = 'Available resolutions are:\n'
     alt = 0
     for key, val in sorted(ifl_resolutions):
-        string += '\t{0:{fill}{align}35}'.format(val, fill=' ' if alt else '.', align='<') + "%s\n" % key
+        string += '\t{0:{fill}{align}35}'.format(val, fill=' ' if alt else '.', align='<') + '%s\n' % key
         alt ^= 1
-
     return string
 
 
 def check_resolution(res, parser):
     if res not in [item[0] for item in ifl_resolutions]:
         parser.print_help()
-        print "\nError: Wrong resolution"
+        print '\nError: Wrong resolution'
         sys.exit(-1)
 
 
@@ -157,7 +156,41 @@ def arg_parser():
     return parser
 
 
-def loop():
+def loop(r, args, latest_wp_id):
+    page_counter = 1
+    wp_counter = 0
+    new_wp_id = None
+
+    while True:
+        ids = id_parser(r)
+        print '*** Page [%d] ***\n' % page_counter
+        page_counter += 1
+        if args.cron and not new_wp_id:
+            new_wp_id = ids[0]
+        for wp_id in ids:
+            if args.cron and (not latest_wp_id or wp_id == latest_wp_id) \
+                    and (0 < args.max_wallpaper == wp_counter or args.max_wallpaper == 0):
+                print 'All new wallpapers downloaded. See u next time!'
+                write_latest_wp_id(new_wp_id)
+                sys.exit()
+            if find_resolution(r, wp_id, args.resolution):
+                wp_counter += 1
+                print 'Wallpaper [%d]' % wp_counter
+                print 'Image ID:', wp_id
+                name = wp_name_parser(r, wp_id)
+                print 'Image Name:', name
+                load_files(r, wp_id, args.resolution, args.path)
+                print
+            if 0 < args.max_wallpaper == wp_counter:
+                print 'All wallpapers downloaded. Bye!'
+                sys.exit()
+        r = next_page(r)
+        if last_page(r):
+            print 'Reached last page. Bye!'
+            sys.exit()
+
+
+def main():
     try:
         # Parse resolutions
         r = get_request(url_ifl + url_resolution)
@@ -178,39 +211,12 @@ def loop():
                   'switch "-n MAX>0" to initialize this mode.'
             sys.exit(1)
 
-        page_counter = 1
-        wp_counter = 0
-        new_wp_id = None
+        loop(r, args, latest_wp_id)
 
-        while not last_page(r):
-            ids = id_parser(r)
-            print "*** Page [%d] ***\n" % page_counter
-            page_counter += 1
-            if args.cron and not new_wp_id:
-                new_wp_id = ids[0]
-            for wp_id in ids:
-                if args.cron and (not latest_wp_id or wp_id == latest_wp_id) \
-                        and (0 < args.max_wallpaper == wp_counter or args.max_wallpaper == 0):
-                    print "All new wallpapers downloaded. See u next time!"
-                    write_latest_wp_id(new_wp_id)
-                    sys.exit()
-                if find_resolution(r, wp_id, args.resolution):
-                    wp_counter += 1
-                    print "Wallpaper [%d]" % wp_counter
-                    print "Image ID:", wp_id
-                    name = wp_name_parser(r, wp_id)
-                    print "Image Name:", name
-                    load_files(r, wp_id, args.resolution, args.path)
-                    print
-                if 0 < args.max_wallpaper == wp_counter:
-                    print "All wallpapers downloaded. Bye!"
-                    sys.exit()
-            r = next_page(r)
-        sys.exit()
     except KeyboardInterrupt:
         if last_file_name:
             os.remove(last_file_name)
-        print "\nExit..."
+        print '\nExit...'
         sys.exit()
     except Exception as e:
         print e.message
@@ -218,4 +224,4 @@ def loop():
 
 
 if __name__ == '__main__':
-    loop()
+    main()
