@@ -25,12 +25,12 @@ def get_request(url, stream=False):
     try:
         return requests.get(url, stream=stream, timeout=timeout)
     except requests.exceptions.Timeout as error:
-        print "Timeout. Perhaps the server is down?! :(\nError Message:\n\t"
-        print error[0][0], error[0][1]
+        print "Timeout. Perhaps the server is down?! :(\n\nError Message:"
+        print "\t", error.message
         sys.exit(-1)
     except requests.exceptions.ConnectionError as error:
-        print "Connection Error. Something went terrible wrong... sorry.\nError Message:\n\t"
-        print error[0][0], error[0][1]
+        print "Connection Error. Something went terrible wrong... sorry.\n\nError Message:"
+        print "\t", error.message
         sys.exit(-2)
 
 
