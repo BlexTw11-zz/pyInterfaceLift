@@ -6,7 +6,11 @@ import sys
 import textwrap
 
 __author__ = 'BlexTw11'
-__version__ = '1.3.2'
+__version__ = '1.3.3'
+
+# Timeout for http request
+timeout = 5  # seconds
+
 url_ifl = "https://interfacelift.com/"
 url_sort = 'wallpaper/downloads/%s/any'
 url_download_file = 'wallpaper/7yz4ma1/'
@@ -14,12 +18,13 @@ url_resolution = 'services/bulk_download_service/'
 id_file = 'id'
 
 ifl_resolutions = []
+last_file_name = None
 
 
 def get_request(url, stream=False):
     try:
-        return requests.get(url, stream=stream)
-    except requests.exceptions.Timeout  as error:
+        return requests.get(url, stream=stream, timeout=timeout)
+    except requests.exceptions.Timeout as error:
         print "Timeout. Perhaps the server is down?! :(\nError Message:\n\t"
         print error[0][0], error[0][1]
         sys.exit(-1)
@@ -33,8 +38,12 @@ def id_parser(r):
     return re.findall(r'id="list_([\d]+)"', r.content)
 
 
-def name_parser(r, wp_id):
+def file_name_parser(r, wp_id):
     return re.search(r'javascript:imgload\(\'(?P<name>.+)\', this,\'%s\'\)' % wp_id, r.content).group('name')
+
+
+def wp_name_parser(r, wp_id):
+    return re.search(r'<h1.*?%s.*html">(?P<name>.+)</a>' % wp_id, r.content).group('name')
 
 
 def next_page(r):
@@ -53,12 +62,15 @@ def find_resolution(r, wp_id, resolution):
     return True if res else False
 
 
-def load_files(r, wp_id, name, resolution, path):
+def load_files(r, wp_id, resolution, path):
+    global last_file_name
+    name = file_name_parser(r, wp_id)
     file_name = "%05d_%s_%s.jpg" % (int(wp_id), name, resolution)
-
+    # Save temporary the current downloaded file
+    last_file_name = path + "/" + file_name
     url = url_ifl + url_download_file + file_name
 
-    with open(path + "/" + file_name, "wb") as wp:
+    with open(last_file_name, "wb") as wp:
         response = get_request(url, stream=True)
         total_length = response.headers.get('content-length')
 
@@ -78,6 +90,7 @@ def load_files(r, wp_id, name, resolution, path):
                                                          'kBytes' if dl < 1048576 else 'MBytes', length_string))
                 sys.stdout.flush()
     print
+    last_file_name = None
     if response.status_code != requests.codes.ok:
         raise Exception('Download picture failed')
 
@@ -185,9 +198,9 @@ def loop():
                     wp_counter += 1
                     print "Wallpaper [%d]" % wp_counter
                     print "Image ID:", wp_id
-                    name = name_parser(r, wp_id)
+                    name = wp_name_parser(r, wp_id)
                     print "Image Name:", name
-                    load_files(r, wp_id, name, args.resolution, args.path)
+                    load_files(r, wp_id, args.resolution, args.path)
                     print
                 if 0 < args.max_wallpaper == wp_counter:
                     print "All wallpapers downloaded. Bye!"
@@ -195,6 +208,8 @@ def loop():
             r = next_page(r)
         sys.exit()
     except KeyboardInterrupt:
+        if last_file_name:
+            os.remove(last_file_name)
         print "\nExit..."
         sys.exit()
     except Exception as e:
