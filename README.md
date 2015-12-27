@@ -3,8 +3,7 @@ Downloader for InterfaceLift wallpapers
 
 ### Preparation
 
-To run this software you need the [Requests](http://docs.python-requests.org/en/) package.
-For installing over [pip](https://pip.pypa.io/en/stable/) enter:
+To run this software you need the [Pythton Interpreter](https://www.python.org/downloads/release/python-2711/) 2.7.x and additionally the [Requests](http://docs.python-requests.org/en/) package. For installing with [pip](https://pip.pypa.io/en/stable/) enter:
 
     pip install requests
     
