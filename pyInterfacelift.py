@@ -80,14 +80,14 @@ def load_files(r, wp_id, resolution, path):
             dl = 0
             total_length = int(total_length)
             length_string = '%.2f %s' % (float(total_length)/(1024 if total_length < 1048576 else 1048576),
-                                                         'kBytes' if total_length < 1048576 else 'MBytes')
+                                         'kBytes' if total_length < 1048576 else 'MBytes')
 
             for data in response.iter_content(chunk_size=2048):
                 dl += len(data)
                 wp.write(data)
                 sys.stdout.write('\r%-50s %.2f %s of %s   ' % (u'\u2588' * (50 * dl / total_length),
-                                                         float(dl)/(1024 if dl < 1048576 else 1048576),
-                                                         'kBytes' if dl < 1048576 else 'MBytes', length_string))
+                                                               float(dl)/(1024 if dl < 1048576 else 1048576),
+                                                               'kBytes' if dl < 1048576 else 'MBytes', length_string))
                 sys.stdout.flush()
     print
     last_file_name = None
